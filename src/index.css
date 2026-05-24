@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+:root {
+  --azul: #061c3f;
+  --rojo: #d70b1c;
+  --gris: #f4f6f8;
+}
+
+body {
+  margin: 0;
+  background: var(--gris);
+}
