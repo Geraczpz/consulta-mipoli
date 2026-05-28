@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Papa from 'papaparse'
 import { supabase } from '../lib/supabaseClient'
-import logo from '../assets/logo.png'
+import logo from '../assets/logoneg.png'
 import { registrarBitacora } from '../lib/bitacora'
 
 function ImportarPolicias() {
@@ -139,6 +139,10 @@ const policias = Array.from(policiasMap.values())
               className="block px-5 py-4 rounded-2xl hover:bg-white/10"
             >
               Usuarios
+            </Link>
+
+             <Link to="/admin/bitacora" className="block px-5 py-4 rounded-2xl hover:bg-white/10">
+              Bitácora
             </Link>
           </nav>
         </div>

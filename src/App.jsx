@@ -6,25 +6,17 @@ import DetallePolicia from './pages/DetallePolicia'
 import AdminPolicias from './pages/AdminPolicias'
 import ImportarPolicias from './pages/ImportarPolicias'
 import AdminUsuarios from './pages/AdminUsuarios'
-import InactivityLogout from './components/InactivityLogout'
-import ProtectedRoute from './components/ProtectedRoute'
-import AdminRoute from './components/AdminRoute'
 import CambiarPassword from './pages/CambiarPassword'
 import Bitacora from './pages/Bitacora'
+
+import ProtectedRoute from './components/ProtectedRoute'
+import AdminRoute from './components/AdminRoute'
 
 function App() {
   return (
     <Routes>
       <Route path="/" element={<Login />} />
-
-<Route
-  path="/admin/bitacora"
-  element={
-    <AdminRoute>
-      <Bitacora />
-    </AdminRoute>
-  }
-/>
+      <Route path="/cambiar-password" element={<CambiarPassword />} />
 
       <Route
         path="/buscar"
@@ -44,14 +36,15 @@ function App() {
         }
       />
 
-     <Route
-  path="/admin"
-  element={
-    <AdminRoute>
-      <AdminPolicias />
-    </AdminRoute>
-  }
-/>
+      <Route
+        path="/admin"
+        element={
+          <AdminRoute>
+            <AdminPolicias />
+          </AdminRoute>
+        }
+      />
+
       <Route
         path="/admin/importar"
         element={
@@ -62,28 +55,24 @@ function App() {
       />
 
       <Route
-  path="/admin/usuarios"
-  element={
-    <AdminRoute>
-      <AdminUsuarios />
-    </AdminRoute>
-  }
-/>
+        path="/admin/usuarios"
+        element={
+          <AdminRoute>
+            <AdminUsuarios />
+          </AdminRoute>
+        }
+      />
 
-<Route path="/admin" element={<AdminPolicias />} />
-<Route
-  path="/cambiar-password"
-  element={<CambiarPassword />}
-/>
-<Route
-  path="/admin/importar"
-  element={<ImportarPolicias />}
-/>
-
+      <Route
+        path="/admin/bitacora"
+        element={
+          <AdminRoute>
+            <Bitacora />
+          </AdminRoute>
+        }
+      />
     </Routes>
   )
 }
-
-
 
 export default App

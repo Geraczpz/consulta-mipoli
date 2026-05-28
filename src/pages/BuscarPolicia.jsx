@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
-import logo from '../assets/logoneg.png'
-import logoHorizontal from '../assets/logo-horizontal.png'
 import { registrarBitacora } from '../lib/bitacora'
+import logo from '../assets/logo.png'
+import logoHorizontal from '../assets/logo-horizontal.png'
 
 function BuscarPolicia() {
   const navigate = useNavigate()
 
   const [usuario, setUsuario] = useState(null)
+  const [rol, setRol] = useState('')
   const [busqueda, setBusqueda] = useState('')
   const [resultados, setResultados] = useState([])
   const [policiaSeleccionado, setPoliciaSeleccionado] = useState(null)
@@ -19,24 +20,28 @@ function BuscarPolicia() {
   }, [])
 
   useEffect(() => {
-    const timer = setTimeout(buscarPolicias, 400)
+    const timer = setTimeout(() => {
+      buscarPolicias()
+    }, 400)
+
     return () => clearTimeout(timer)
   }, [busqueda])
 
   async function cargarUsuario() {
     const {
-      data: { session },
-    } = await supabase.auth.getSession()
+      data: { user },
+    } = await supabase.auth.getUser()
 
-    if (!session) return
+    if (!user) return
 
     const { data } = await supabase
       .from('profiles')
       .select('nombre, rol')
-      .eq('id', session.user.id)
+      .eq('id', user.id)
       .single()
 
-    setUsuario(data)
+  setUsuario(data)
+setRol(data?.rol || '')
   }
 
   async function buscarPolicias() {
@@ -51,11 +56,24 @@ function BuscarPolicia() {
       texto_busqueda: busqueda,
     })
 
-    if (!error) {
-      setResultados(data)
+    if (error) {
+      console.error(error)
+    } else {
+      setResultados(data || [])
     }
 
     setCargando(false)
+  }
+
+  async function abrirPolicia(policia) {
+    setPoliciaSeleccionado(policia)
+
+    await registrarBitacora({
+      accion: 'VER_POLICIA',
+      modulo: 'policias',
+      descripcion: `Vio el perfil de ${policia.nombre_completo}`,
+      policia_id: policia.id,
+    })
   }
 
   async function cerrarSesion() {
@@ -73,18 +91,30 @@ function BuscarPolicia() {
             className="h-12 sm:h-16 object-contain"
           />
 
-          <div className="flex items-center gap-3">
-            <span className="hidden sm:block font-semibold">
-              {usuario?.nombre || 'Usuario'}
-            </span>
+         <div className="flex items-center gap-3">
 
-            <button
-              onClick={cerrarSesion}
-              className="bg-[#d70b1c] hover:bg-red-700 text-white px-4 sm:px-6 py-2.5 rounded-full font-bold shadow-md transition"
-            >
-              Cerrar sesión
-            </button>
-          </div>
+           <span className="hidden sm:block font-semibold">
+    {usuario?.nombre || 'Usuario'}
+  </span>
+  
+  {rol === 'admin' && (
+    <button
+      onClick={() => navigate('/admin')}
+      className="bg-[#061c3f] hover:bg-[#0b2b5c] text-white px-5 py-2.5 rounded-full font-bold shadow-md transition"
+    >
+      Panel admin
+    </button>
+  )}
+
+ 
+
+  <button
+    onClick={cerrarSesion}
+    className="bg-[#d70b1c] hover:bg-red-700 text-white px-4 sm:px-6 py-2.5 rounded-full font-bold shadow-md transition"
+  >
+    Cerrar sesión
+  </button>
+</div>
         </div>
       </header>
 
@@ -117,11 +147,13 @@ function BuscarPolicia() {
               className="flex-1 px-5 py-5 outline-none text-lg bg-transparent"
             />
 
-          
+         
           </div>
 
           {cargando && (
-            <p className="mt-6 text-center text-gray-500">Buscando...</p>
+            <p className="mt-6 text-center text-gray-500">
+              Buscando...
+            </p>
           )}
         </section>
 
@@ -139,16 +171,7 @@ function BuscarPolicia() {
               {resultados.map((policia) => (
                 <button
                   key={policia.id}
-                  onClick={() => {
-  setPoliciaSeleccionado(policia)
-
-  registrarBitacora({
-    accion: 'VER_POLICIA',
-    modulo: 'policias',
-    descripcion: `Vio el perfil de ${policia.nombre_completo}`,
-    policia_id: policia.id,
-  })
-}}
+                  onClick={() => abrirPolicia(policia)}
                   className="w-full text-left px-6 py-5 flex items-center gap-4 border-b last:border-b-0 hover:bg-gray-50 transition"
                 >
                   <div className="w-14 h-14 rounded-full bg-[#061c3f] flex items-center justify-center shrink-0">
@@ -161,11 +184,11 @@ function BuscarPolicia() {
 
                   <div className="flex-1">
                     <h3 className="font-black text-lg">
-                      {policia.nombre_completo}
+                      {policia.nombre_completo || 'Sin nombre'}
                     </h3>
 
                     <p className="text-gray-500 mt-1">
-                      Placa: {policia.placa}
+                      Placa: {policia.placa || '—'}
                     </p>
                   </div>
 
@@ -246,10 +269,5 @@ function Info({ label, value }) {
     </div>
   )
 }
-await registrarBitacora({
-  accion: 'IMPORTAR_POLICIAS',
-  modulo: 'policias',
-  descripcion: `Importó ${policias.length} policías`,
-})
 
 export default BuscarPolicia

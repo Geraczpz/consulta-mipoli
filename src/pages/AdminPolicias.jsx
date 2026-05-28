@@ -30,6 +30,14 @@ function AdminPolicias() {
             <Link to="/admin/importar" className="block px-5 py-4 rounded-2xl hover:bg-white/10">
               Importar policías
             </Link>
+
+            <Link to="/admin/usuarios" className="block px-5 py-4 rounded-2xl hover:bg-white/10">
+              Usuarios
+            </Link>
+
+            <Link to="/admin/bitacora" className="block px-5 py-4 rounded-2xl hover:bg-white/10">
+              Bitácora
+            </Link>
           </nav>
         </div>
 
@@ -44,78 +52,27 @@ function AdminPolicias() {
       </aside>
 
       <main className="flex-1">
-        <header className="bg-white border-b border-gray-200 px-6 py-5 flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-black text-[#061c3f]">
-              Panel administrador
-            </h1>
-            <p className="text-gray-500">
-              Gestión de importación y consulta de policías
-            </p>
-          </div>
-
-          <button
-            onClick={cerrarSesion}
-            className="md:hidden bg-[#d70b1c] text-white px-4 py-2 rounded-xl font-bold"
-          >
-            Salir
-          </button>
+        <header className="bg-white border-b border-gray-200 px-6 py-5">
+          <h1 className="text-3xl font-black text-[#061c3f]">
+            Panel administrador
+          </h1>
+          <p className="text-gray-500 mt-1">
+            Bienvenido al panel administrativo de Mi Poli.
+          </p>
         </header>
 
         <section className="p-6 sm:p-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Link
-              to="/buscar"
-              className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100 hover:shadow-xl transition"
-            >
-              <div className="w-16 h-16 bg-[#061c3f] text-white rounded-2xl flex items-center justify-center text-3xl">
-                ⌕
-              </div>
+          <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-10 max-w-4xl">
+            <h2 className="text-4xl font-black text-[#061c3f]">
+              Bienvenido al panel administrativo
+            </h2>
 
-              <h2 className="text-2xl font-black text-[#061c3f] mt-6">
-                Buscar policías
-              </h2>
+            <p className="text-gray-500 text-lg mt-4">
+              Desde el menú lateral puedes buscar policías, importar registros,
+              administrar usuarios y revisar la bitácora del sistema.
+            </p>
 
-              <p className="text-gray-500 mt-3">
-                Consulta información de policías registrados en la base de datos.
-              </p>
-            </Link>
-
-            <Link
-              to="/admin/importar"
-              className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100 hover:shadow-xl transition"
-            >
-              <div className="w-16 h-16 bg-[#d70b1c] text-white rounded-2xl flex items-center justify-center text-3xl">
-                ↑
-              </div>
-
-              <h2 className="text-2xl font-black text-[#061c3f] mt-6">
-                Importar policías
-              </h2>
-
-
-
-
-
-         
-
-
-            <Link
-              to="/admin/usuarios"
-              className="block px-5 py-4 rounded-2xl bg-white/10 border-l-4 border-[#d70b1c]"
-            >
-              Usuarios
-            </Link>
-  
-      
-
-
-
-
-              <p className="text-gray-500 mt-3">
-                Sube un archivo CSV para agregar policías de manera masiva.
-              </p>
-            </Link>
+            <div className="w-24 h-1 bg-[#d70b1c] mt-8 rounded-full"></div>
           </div>
         </section>
       </main>

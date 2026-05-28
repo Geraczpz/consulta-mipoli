@@ -1,44 +1,46 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
-import logo from '../assets/logo.png'
 import { registrarBitacora } from '../lib/bitacora'
+import logo from '../assets/logoneg.png'
 
 function AdminUsuarios() {
   const navigate = useNavigate()
 
-  const [usuarios, setUsuarios] = useState([])
-  const [loading, setLoading] = useState(true)
-
   const [nombre, setNombre] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [rol, setRol] = useState('general')
+  const [rol, setRol] = useState('admin')
 
-  const [creando, setCreando] = useState(false)
+  const [usuarios, setUsuarios] = useState([])
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    obtenerUsuarios()
+    cargarUsuarios()
   }, [])
 
-  async function obtenerUsuarios() {
-    setLoading(true)
-
+  async function cargarUsuarios() {
     const { data } = await supabase
       .from('profiles')
       .select('*')
-      .order('created_at', { ascending: false })
+      .order('created_at', {
+        ascending: false,
+      })
 
     setUsuarios(data || [])
-    setLoading(false)
   }
 
   async function crearUsuario(e) {
     e.preventDefault()
 
-    setCreando(true)
+    if (!nombre || !email || !password) {
+      alert('Completa todos los campos')
+      return
+    }
 
     try {
+      setLoading(true)
+
       const { data, error } = await supabase.functions.invoke(
         'crear-usuario',
         {
@@ -51,28 +53,38 @@ function AdminUsuarios() {
         }
       )
 
-      if (error) throw error
-
-      if (!data.ok) {
-        throw new Error(data.error)
+      if (error) {
+        throw error
       }
+
+      if (data?.error) {
+        alert(data.error)
+        setLoading(false)
+        return
+      }
+
+      await registrarBitacora({
+        accion: 'CREAR_USUARIO',
+        modulo: 'usuarios',
+        descripcion: `Creó usuario ${email} con rol ${rol}`,
+      })
 
       alert('Usuario creado correctamente')
 
       setNombre('')
       setEmail('')
       setPassword('')
-      setRol('general')
+      setRol('admin')
 
-      obtenerUsuarios()
+      cargarUsuarios()
     } catch (error) {
       alert(error.message)
     }
 
-    setCreando(false)
+    setLoading(false)
   }
 
-  async function resetPassword(userId) {
+  async function resetPassword(usuarioId) {
     const confirmar = confirm(
       '¿Restablecer contraseña a 12345678?'
     )
@@ -80,26 +92,39 @@ function AdminUsuarios() {
     if (!confirmar) return
 
     try {
-      const { data, error } = await supabase.functions.invoke(
+      const { error } = await supabase.functions.invoke(
         'reset-password',
         {
           body: {
-            userId,
+            userId: usuarioId,
+            password: '12345678',
           },
         }
       )
 
-      if (error) throw error
-
-      if (!data.ok) {
-        throw new Error(data.error)
+      if (error) {
+        throw error
       }
 
+      await supabase
+        .from('profiles')
+        .update({
+          debe_cambiar_password: true,
+        })
+        .eq('id', usuarioId)
+
+      await registrarBitacora({
+        accion: 'RESET_PASSWORD',
+        modulo: 'usuarios',
+        descripcion:
+          'Restableció contraseña de un usuario',
+      })
+
       alert(
-        'Contraseña restablecida a 12345678'
+        'Contraseña restablecida correctamente'
       )
 
-      obtenerUsuarios()
+      cargarUsuarios()
     } catch (error) {
       alert(error.message)
     }
@@ -150,6 +175,13 @@ function AdminUsuarios() {
             >
               Usuarios
             </Link>
+
+            <Link
+              to="/admin/bitacora"
+              className="block px-5 py-4 rounded-2xl hover:bg-white/10"
+            >
+              Bitácora
+            </Link>
           </nav>
         </div>
 
@@ -170,133 +202,152 @@ function AdminUsuarios() {
           </h1>
 
           <p className="text-gray-500 mt-1">
-            Crear y administrar usuarios del sistema.
+            Crear y administrar usuarios del
+            sistema.
           </p>
         </header>
 
-        <section className="p-6 grid xl:grid-cols-2 gap-6">
-          <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
-            <div className="w-16 h-16 rounded-2xl bg-[#d70b1c] text-white flex items-center justify-center text-3xl">
-              +
+        <section className="p-6 grid grid-cols-1 xl:grid-cols-3 gap-6">
+          <div className="xl:col-span-1">
+            <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
+              <div className="w-20 h-20 rounded-3xl bg-[#8b0000] flex items-center justify-center text-white text-5xl mb-6">
+                +
+              </div>
+
+              <h2 className="text-4xl font-black text-[#061c3f]">
+                Nuevo usuario
+              </h2>
+
+              <p className="text-gray-500 mt-3">
+                Completa la información del
+                usuario.
+              </p>
+
+              <form
+                onSubmit={crearUsuario}
+                className="mt-8 space-y-5"
+              >
+                <div>
+                  <label className="font-bold text-[#061c3f]">
+                    Nombre
+                  </label>
+
+                  <input
+                    type="text"
+                    value={nombre}
+                    onChange={(e) =>
+                      setNombre(e.target.value)
+                    }
+                    className="w-full border rounded-2xl px-5 py-4 mt-2"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-bold text-[#061c3f]">
+                    Correo electrónico
+                  </label>
+
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) =>
+                      setEmail(e.target.value)
+                    }
+                    className="w-full border rounded-2xl px-5 py-4 mt-2"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-bold text-[#061c3f]">
+                    Contraseña
+                  </label>
+
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) =>
+                      setPassword(e.target.value)
+                    }
+                    className="w-full border rounded-2xl px-5 py-4 mt-2"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-bold text-[#061c3f]">
+                    Rol
+                  </label>
+
+                  <select
+                    value={rol}
+                    onChange={(e) =>
+                      setRol(e.target.value)
+                    }
+                    className="w-full border rounded-2xl px-5 py-4 mt-2"
+                  >
+                    <option value="admin">
+                      Administrador
+                    </option>
+
+                    <option value="usuario">
+                      Usuario
+                    </option>
+                  </select>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-[#8b0000] hover:bg-red-800 text-white py-5 rounded-2xl text-xl font-black shadow-lg"
+                >
+                  {loading
+                    ? 'Creando usuario...'
+                    : 'Crear usuario'}
+                </button>
+              </form>
             </div>
-
-            <h2 className="text-2xl font-black text-[#061c3f] mt-6">
-              Nuevo usuario
-            </h2>
-
-            <form
-              onSubmit={crearUsuario}
-              className="mt-8 space-y-5"
-            >
-              <input
-                type="text"
-                placeholder="Nombre"
-                value={nombre}
-                onChange={(e) =>
-                  setNombre(e.target.value)
-                }
-                className="w-full border rounded-2xl px-5 py-4"
-              />
-
-              <input
-                type="email"
-                placeholder="Correo"
-                value={email}
-                onChange={(e) =>
-                  setEmail(e.target.value)
-                }
-                className="w-full border rounded-2xl px-5 py-4"
-              />
-
-              <input
-                type="password"
-                placeholder="Contraseña"
-                value={password}
-                onChange={(e) =>
-                  setPassword(e.target.value)
-                }
-                className="w-full border rounded-2xl px-5 py-4"
-              />
-
-              <select
-                value={rol}
-                onChange={(e) =>
-                  setRol(e.target.value)
-                }
-                className="w-full border rounded-2xl px-5 py-4"
-              >
-                <option value="general">
-                  General
-                </option>
-
-                <option value="admin">
-                  Administrador
-                </option>
-              </select>
-
-              <button
-                type="submit"
-                disabled={creando}
-                className="w-full bg-[#d70b1c] text-white py-4 rounded-2xl font-black"
-              >
-                {creando
-                  ? 'Creando usuario...'
-                  : 'Crear usuario'}
-              </button>
-            </form>
           </div>
 
-          <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
-            <div className="p-6 border-b">
-              <h2 className="text-2xl font-black text-[#061c3f]">
-                Usuarios registrados
-              </h2>
-            </div>
+          <div className="xl:col-span-2">
+            <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+              <div className="px-8 py-6 border-b">
+                <h2 className="text-3xl font-black text-[#061c3f]">
+                  Usuarios registrados
+                </h2>
+              </div>
 
-            <div className="max-h-[700px] overflow-y-auto">
-              {loading ? (
-                <div className="p-8 text-center">
-                  Cargando...
-                </div>
-              ) : usuarios.length === 0 ? (
-                <div className="p-8 text-center text-gray-500">
-                  No hay usuarios
-                </div>
-              ) : (
-                usuarios.map((usuario) => (
+              <div className="divide-y">
+                {usuarios.map((usuario) => (
                   <div
                     key={usuario.id}
-                    className="p-6 border-b"
+                    className="p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-5"
                   >
-                    <div className="flex justify-between items-start gap-4">
-                      <div>
-                        <h3 className="font-black text-lg text-[#061c3f]">
-                          {usuario.nombre}
-                        </h3>
+                    <div>
+                      <h3 className="text-2xl font-black text-[#061c3f]">
+                        {usuario.nombre}
+                      </h3>
 
-                        <p className="text-gray-500 mt-1">
-                          Rol: {usuario.rol}
-                        </p>
+                      <p className="text-gray-500 mt-1">
+                        {usuario.rol}
+                      </p>
 
-                        {usuario.debe_cambiar_password && (
-                          <span className="inline-block mt-3 text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full">
-                            Debe cambiar contraseña
-                          </span>
-                        )}
-                      </div>
-
-                      <button
-                        onClick={() =>
-                          resetPassword(usuario.id)
-                        }
-                        className="bg-[#061c3f] hover:bg-[#0b2f66] text-white px-5 py-3 rounded-2xl text-sm font-bold"
-                      >
-                        Restablecer contraseña
-                      </button>
+                      {usuario.debe_cambiar_password && (
+                        <span className="inline-block mt-3 bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-bold">
+                          Debe cambiar contraseña
+                        </span>
+                      )}
                     </div>
+
+                    <button
+                      onClick={() =>
+                        resetPassword(usuario.id)
+                      }
+                      className="bg-[#d70b1c] hover:bg-red-700 text-white px-6 py-4 rounded-2xl font-bold shadow-lg"
+                    >
+                      Restablecer contraseña
+                    </button>
                   </div>
-                ))
-              )}
+                ))}
+              </div>
             </div>
           </div>
         </section>
@@ -304,15 +355,5 @@ function AdminUsuarios() {
     </div>
   )
 }
-await registrarBitacora({
-  accion: 'CREAR_USUARIO',
-  modulo: 'usuarios',
-  descripcion: `Creó usuario ${email} con rol ${rol}`,
-})
 
-await registrarBitacora({
-  accion: 'RESET_PASSWORD',
-  modulo: 'usuarios',
-  descripcion: 'Restableció contraseña de un usuario a 12345678',
-})
 export default AdminUsuarios
