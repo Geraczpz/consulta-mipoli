@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import logo from '../assets/logoneg.png'
 import logoHorizontal from '../assets/logo-horizontal.png'
+import { registrarBitacora } from '../lib/bitacora'
 
 function BuscarPolicia() {
   const navigate = useNavigate()
@@ -138,7 +139,16 @@ function BuscarPolicia() {
               {resultados.map((policia) => (
                 <button
                   key={policia.id}
-                  onClick={() => setPoliciaSeleccionado(policia)}
+                  onClick={() => {
+  setPoliciaSeleccionado(policia)
+
+  registrarBitacora({
+    accion: 'VER_POLICIA',
+    modulo: 'policias',
+    descripcion: `Vio el perfil de ${policia.nombre_completo}`,
+    policia_id: policia.id,
+  })
+}}
                   className="w-full text-left px-6 py-5 flex items-center gap-4 border-b last:border-b-0 hover:bg-gray-50 transition"
                 >
                   <div className="w-14 h-14 rounded-full bg-[#061c3f] flex items-center justify-center shrink-0">
@@ -236,5 +246,10 @@ function Info({ label, value }) {
     </div>
   )
 }
+await registrarBitacora({
+  accion: 'IMPORTAR_POLICIAS',
+  modulo: 'policias',
+  descripcion: `Importó ${policias.length} policías`,
+})
 
 export default BuscarPolicia

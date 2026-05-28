@@ -6,15 +6,25 @@ import DetallePolicia from './pages/DetallePolicia'
 import AdminPolicias from './pages/AdminPolicias'
 import ImportarPolicias from './pages/ImportarPolicias'
 import AdminUsuarios from './pages/AdminUsuarios'
-
+import InactivityLogout from './components/InactivityLogout'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
 import CambiarPassword from './pages/CambiarPassword'
+import Bitacora from './pages/Bitacora'
 
 function App() {
   return (
     <Routes>
       <Route path="/" element={<Login />} />
+
+<Route
+  path="/admin/bitacora"
+  element={
+    <AdminRoute>
+      <Bitacora />
+    </AdminRoute>
+  }
+/>
 
       <Route
         path="/buscar"

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import logo from '../assets/logo.png'
+import { registrarBitacora } from '../lib/bitacora'
 
 function AdminUsuarios() {
   const navigate = useNavigate()
@@ -303,5 +304,15 @@ function AdminUsuarios() {
     </div>
   )
 }
+await registrarBitacora({
+  accion: 'CREAR_USUARIO',
+  modulo: 'usuarios',
+  descripcion: `Creó usuario ${email} con rol ${rol}`,
+})
 
+await registrarBitacora({
+  accion: 'RESET_PASSWORD',
+  modulo: 'usuarios',
+  descripcion: 'Restableció contraseña de un usuario a 12345678',
+})
 export default AdminUsuarios

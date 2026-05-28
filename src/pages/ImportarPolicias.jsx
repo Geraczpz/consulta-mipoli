@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import Papa from 'papaparse'
 import { supabase } from '../lib/supabaseClient'
 import logo from '../assets/logo.png'
+import { registrarBitacora } from '../lib/bitacora'
 
 function ImportarPolicias() {
   const navigate = useNavigate()
@@ -129,6 +130,9 @@ const policias = Array.from(policiasMap.values())
             >
               Importar policías
             </Link>
+
+
+
 
             <Link
               to="/admin/usuarios"

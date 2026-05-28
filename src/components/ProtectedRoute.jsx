@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
+import InactivityLogout from './InactivityLogout'
 
 function ProtectedRoute({ children }) {
   const [session, setSession] = useState(null)
@@ -20,7 +21,12 @@ function ProtectedRoute({ children }) {
 
   if (!session) return <Navigate to="/" />
 
-  return children
+ return (
+  <>
+    <InactivityLogout />
+    {children}
+  </>
+)
 }
 
 export default ProtectedRoute
